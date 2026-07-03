@@ -13,8 +13,8 @@ Copy this file to `.cursor/rules/shovel-integration.mdc` in the target repo. Set
 ## Quick reference
 
 **Required files (copy from Shovel repo):**
-- `index.js` → serve as static asset (e.g. `public/shovel/index.js`)
-- Shovel editor CSS (`.shovel-*` rules from Shovel `styles.css`, section `/* Shovel editor UI */`) → `public/shovel/shovel.css`
+- `shovel.js` → serve as `public/shovel/index.js` (**not** root `index.js` — that is site JS)
+- `shovel.css` (all `.shovel-*` rules; or extract from `styles.css` section `/* Shovel editor UI */`) → `public/shovel/shovel.css`
 
 **Required wiring:**
 ```html
@@ -37,9 +37,9 @@ window.__SHOVEL_CONFIG = { repo: "org/repo", baseBranch: "main" };
 
 1. Shovel boots only when at least one `[data-shovel-source]` exists on the page.
 2. `data-shovel-source` format is `<css-file>:<selector>` — selector must exist as a rule in that CSS file.
-3. `index.js` does not inject styles — `shovel.css` is mandatory.
+3. `shovel.js` (served as `index.js`) does not inject styles — `shovel.css` is mandatory.
 4. Only enable on staging/local (`SHOVEL_STAGING=true`), never production.
-5. No npm package — copy `index.js` and CSS from the Shovel repo.
+5. No npm package — copy `shovel.js` and `shovel.css` from the Shovel repo.
 6. For React/Vue, add `data-shovel-source` manually on rendered elements (or use `@shovel/vite-plugin` from Shovel `tooling/` for auto-stamping).
 
 ## Verification

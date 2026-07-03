@@ -1,16 +1,35 @@
 # Shovel integration guide (for agents)
 
-Use this document when integrating **Shovel** into another codebase via the **vanilla script** approach (`index.js` + CSS). Shovel is a visual CSS editor that maps page elements back to CSS rules and can open GitHub PRs with the changes.
+Use this document when integrating **Shovel** into another codebase via the **vanilla script** approach (editor script + CSS). Shovel is a visual CSS editor that maps page elements back to CSS rules and can open GitHub PRs with the changes.
 
-**Source repo:** Shovel / Shovyl (`index.js`, `styles.css`)  
+**Source repo:** this Shovel demo repo (`shovel.js`, `shovel.css`)  
 **Integration model:** copy two artifacts, stamp HTML, load one script. No npm package required for vanilla sites.
+
+> **Important:** In this repo the editor script is `shovel.js` and the editor styles are in `shovel.css`. The root `index.js` is **site/portfolio JavaScript** — do not copy it. When integrating elsewhere, serve the editor script as `public/shovel/index.js`.
+
+---
+
+## What to copy
+
+| Copy from this repo | Serve in target project |
+|---------------------|-------------------------|
+| `shovel.js` | `public/shovel/index.js` |
+| `shovel.css` (all `.shovel-*` rules) | `public/shovel/shovel.css` |
+
+If your Shovel source still bundles editor CSS into `styles.css`, extract only the section from `/* Shovel editor UI */` to EOF — do **not** copy demo page styles (`.hero`, `.landing-content`, etc.).
+
+```bash
+# From Shovel repo root (when CSS lives in styles.css)
+sed -n '/Shovel editor UI/,$p' styles.css > public/shovel/shovel.css
+cp shovel.js public/shovel/index.js
+```
 
 ---
 
 ## What Shovel needs to work
 
-1. **`index.js`** — editor overlay, live preview, GitHub PR flow (self-booting IIFE, ~500 lines, no imports)
-2. **Shovel editor CSS** — all rules under `/* Shovel editor UI */` in `styles.css` (classes prefixed with `.shovel-`)
+1. **Editor script** (`shovel.js` here → `public/shovel/index.js` in target) — overlay, live preview, GitHub PR flow (self-booting IIFE, ~500 lines, no imports)
+2. **Shovel editor CSS** — all `.shovel-*` rules (`shovel.css`, or the `/* Shovel editor UI */` section of `styles.css`)
 3. **Stamped elements** — at least one element with `data-shovel-source`
 4. **Matching CSS rules** — the stamped selector must exist as a rule block in the referenced CSS file
 
@@ -23,8 +42,8 @@ Shovel **does not inject its own styles**. If you only add `index.js`, the UI wi
 Copy this checklist and mark items as you go:
 
 ```
-[ ] 1. Copy index.js into the target project (e.g. public/shovel/index.js)
-[ ] 2. Extract Shovel CSS into a dedicated file (e.g. public/shovel/shovel.css)
+[ ] 1. Copy shovel.js → public/shovel/index.js (do not copy root index.js — that is site JS)
+[ ] 2. Copy shovel.css → public/shovel/shovel.css (or extract .shovel-* from styles.css)
 [ ] 3. Link shovel.css in the HTML layout (or main template)
 [ ] 4. Load index.js as type="module" before </body>
 [ ] 5. Add data-shovel-source to editable elements
@@ -38,22 +57,23 @@ Copy this checklist and mark items as you go:
 
 ## Step 1 — Copy files from Shovel repo
 
-From the Shovel repo root, copy:
+From this Shovel repo root, copy:
 
-| Source | Suggested target in other project |
-|--------|-----------------------------------|
-| `index.js` | `public/shovel/index.js` or `static/shovel/index.js` |
-| `styles.css` (Shovel section only — from `/* Shovel editor UI */` to EOF) | `public/shovel/shovel.css` |
+| Source in this repo | Target in other project |
+|---------------------|-------------------------|
+| `shovel.js` | `public/shovel/index.js` or `static/shovel/index.js` |
+| `shovel.css` | `public/shovel/shovel.css` |
 
-**Do not** copy the demo page styles (`.hero`, `.card`, etc.) unless the target project needs them.
+**Do not copy** root `index.js` — it is portfolio/site JavaScript, not Shovel.
 
-**Quick extract** (from Shovel repo root, adjust start line if needed):
+If editor CSS is still embedded in `styles.css` instead of `shovel.css`, extract only the Shovel section:
 
 ```bash
 sed -n '/Shovel editor UI/,$p' styles.css > public/shovel/shovel.css
+cp shovel.js public/shovel/index.js
 ```
 
-`index.js` boots automatically on `DOMContentLoaded`. It has **no imports**.
+The editor script boots automatically on `DOMContentLoaded`. It has **no imports**.
 
 ---
 
@@ -140,7 +160,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-Put `index.js` and `shovel.css` in `public/shovel/`. Set `SHOVEL_STAGING=true` in `.env.local` only.
+Put `shovel.js` (as `public/shovel/index.js`) and `shovel.css` in `public/shovel/`. Set `SHOVEL_STAGING=true` in `.env.local` only.
 
 ---
 
@@ -250,7 +270,7 @@ Follow steps above directly. Simplest integration path. Place files in a `shovel
 
 ### Vite / any bundler
 
-- Place `index.js` and `shovel.css` in `public/` so they are served at `/shovel/...`
+- Copy `shovel.js` and `shovel.css` into `public/shovel/` (script served at `/shovel/index.js`)
 - Use `type="module"` script tag
 - Gate behind `SHOVEL_STAGING=true` for non-production builds
 
@@ -272,7 +292,7 @@ For automatic JSX stamping, Shovel has optional tooling in `tooling/` (`@shovel/
 
 ### Next.js / App Router
 
-- Put `index.js` + `shovel.css` in `public/shovel/`
+- Copy `shovel.js` → `public/shovel/index.js` and `shovel.css` → `public/shovel/shovel.css`
 - Conditionally render `<link>` and `<script>` in `app/layout.tsx` when `SHOVEL_STAGING === 'true'`
 - Stamp elements in server or client components via `data-shovel-source`
 - Never set `SHOVEL_STAGING` in production env vars
@@ -310,7 +330,7 @@ After integration, confirm:
 
 ## Files to never modify in the target project (unless fixing bugs)
 
-When copying from Shovel, treat `index.js` as a vendored file. Prefer:
+When copying from Shovel, treat `shovel.js` (served as `index.js`) as a vendored file. Prefer:
 
 - Config via `window.__SHOVEL_CONFIG`
 - Styling via `shovel.css` overrides (if needed)
@@ -320,9 +340,9 @@ When copying from Shovel, treat `index.js` as a vendored file. Prefer:
 
 ## Minimal end-to-end example
 
-**`public/shovel/shovel.css`** — copy Shovel editor UI section from Shovel `styles.css`
+**`public/shovel/shovel.css`** — copy `shovel.css` from this repo
 
-**`public/shovel/index.js`** — copy Shovel `index.js`
+**`public/shovel/index.js`** — copy `shovel.js` from this repo
 
 **`index.html`:**
 
@@ -380,7 +400,7 @@ Set `alwaysApply: true` in the frontmatter if you want the rule always on in tha
 When asked to integrate Shovel into a codebase:
 
 1. Locate the project's CSS files and main HTML/layout entry point.
-2. Copy `index.js` and Shovel editor CSS from the Shovel repo into `public/shovel/` (or equivalent static dir).
+2. Copy `shovel.js` → `public/shovel/index.js` and `shovel.css` → `public/shovel/shovel.css` (or equivalent static dir).
 3. Link CSS + script in the layout; gate behind staging env.
 4. Add `data-shovel-source="<css-file>:<selector>"` to elements that map to real CSS rules.
 5. Verify selectors exist in the referenced CSS files.
