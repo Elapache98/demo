@@ -1,0 +1,49 @@
+---
+description: How to integrate Shovel visual CSS editor via index.js script into this codebase
+alwaysApply: false
+globs:
+---
+
+# Shovel integration (script-based)
+
+When integrating Shovel into this project, follow `docs/SHOVEL_INTEGRATION.md` (or the Shovel repo copy of that file).
+
+Copy this file to `.cursor/rules/shovel-integration.mdc` in the target repo. Set `alwaysApply: true` in frontmatter to keep it always on.
+
+## Quick reference
+
+**Required files (copy from Shovel repo):**
+- `index.js` → serve as static asset (e.g. `public/shovel/index.js`)
+- Shovel editor CSS (`.shovel-*` rules from Shovel `styles.css`, section `/* Shovel editor UI */`) → `public/shovel/shovel.css`
+
+**Required wiring:**
+```html
+<link rel="stylesheet" href="/shovel/shovel.css" />
+<script type="module" src="/shovel/index.js"></script>
+```
+
+**Required markup on editable elements:**
+```html
+data-shovel-source="path/to/file.css:.selector"
+data-shovel-tag="button"  <!-- optional -->
+```
+
+**Optional config (before script):**
+```js
+window.__SHOVEL_CONFIG = { repo: "org/repo", baseBranch: "main" };
+```
+
+## Rules for agents
+
+1. Shovel boots only when at least one `[data-shovel-source]` exists on the page.
+2. `data-shovel-source` format is `<css-file>:<selector>` — selector must exist as a rule in that CSS file.
+3. `index.js` does not inject styles — `shovel.css` is mandatory.
+4. Only enable on staging/local (`SHOVEL_STAGING=true`), never production.
+5. No npm package — copy `index.js` and CSS from the Shovel repo.
+6. For React/Vue, add `data-shovel-source` manually on rendered elements (or use `@shovel/vite-plugin` from Shovel `tooling/` for auto-stamping).
+
+## Verification
+
+- Console: `[Shovel] Editor ready — click any element or the shovel button to start.`
+- ⛏ button appears bottom-right, styled
+- Clicking stamped element opens editor + live CSS preview
