@@ -1,0 +1,20 @@
+{
+  "name": "demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prestart": "npm run stop",
+    "start": "nodemon server.js",
+    "dev": "npm start",
+    "stop": "lsof -ti :3847 | xargs kill -9 2>/dev/null || true",
+    "restart": "npm run stop && npm start"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "chokidar": "^5.0.0",
+    "nodemon": "^3.1.14"
+  }
+}
