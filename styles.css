@@ -163,7 +163,8 @@ margin-top: calc(100vh * .25);
 transition: box-shadow .25s;
   box-shadow:75px var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
  
-}
+
+  display: grid;}
 
 .answer-content {
   min-width: 0;
@@ -521,7 +522,11 @@ p {
   line-height: 1.65;
   letter-spacing: 0.25px;
   
-}
+
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;}
 
 p b, p strong {
   font-weight: 700;
@@ -872,7 +877,7 @@ img.preloaded {
     rgba(255, 255, 255, 0.12) 45%,
     rgba(255, 255, 255, 0.22) 100%
   );
-  border-radius: 0px;
+  border-radius: 8px;
   /* Soft light rim around the edge */
   border: 1px solid rgba(255, 255, 255, 0.45);
   /* Heavy gaussian blur + saturation/brightness lift refracts whatever scrolls behind */
@@ -1045,10 +1050,10 @@ border: 1px solid rgba(13, 11, 70, 0.05);
 
     .landing-content h1 {
         font-family: 'Bricolage Grotesque', sans-serif ;
-        font-size: 32px;
-        font-weight: 800;
+  font-size: 48px;
+  font-weight: 500;
         margin-bottom: 0.5rem;
-        color: #222;
+  color: #8f4242;
         
       
   background-color: #cb2a2a;
