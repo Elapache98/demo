@@ -166,10 +166,9 @@ transition: box-shadow .25s;
 
   display: grid;}
 .landing-content h1 {
-
-  margin-bottom: px;
+  margin-bottom: 0px;
   margin-top: 0px;
-  height: 15.453px;
+  height: 75.4453px;
 }
 
 
@@ -1267,7 +1266,7 @@ border: 1px solid rgba(13, 11, 70, 0.05);
 
 
 .photo-row {
-  display: inline;
+  display: flex;
   flex-wrap: nowrap;         /* Prevent wrapping */
   gap: 8px;
   justify-content: flex-start;
