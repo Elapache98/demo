@@ -525,7 +525,7 @@ width: 20vw;  }
 p {
   font-family: 'inter', Arial, sans-serif;
   font-size: 18px;
-  color: #bd0000;
+  color: #000333;
   font-weight: 500;
   line-height: 1.65;
   letter-spacing: 0.25px;
@@ -1267,7 +1267,7 @@ border: 1px solid rgba(13, 11, 70, 0.05);
 
 
 .photo-row {
-  display: flex;
+  display: inline;
   flex-wrap: nowrap;         /* Prevent wrapping */
   gap: 8px;
   justify-content: flex-start;
