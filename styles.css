@@ -80,7 +80,7 @@ body.article-page {
   font-family: 'Bricolage Grotesque', sans-serif;
   cursor: pointer;
   transition: background 0.2s ease;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -1050,7 +1050,12 @@ border: 1px solid rgba(13, 11, 70, 0.05);
         margin-bottom: 0.5rem;
         color: #222;
         
-      }
+      
+  background-color: #cb2a2a;
+  padding-top: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  padding-left: 16px;}
       
  
  
