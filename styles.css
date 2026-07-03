@@ -870,7 +870,7 @@ img.preloaded {
     rgba(255, 255, 255, 0.12) 45%,
     rgba(255, 255, 255, 0.22) 100%
   );
-  border-radius: 28px;
+  border-radius: 0px;
   /* Soft light rim around the edge */
   border: 1px solid rgba(255, 255, 255, 0.45);
   /* Heavy gaussian blur + saturation/brightness lift refracts whatever scrolls behind */
@@ -888,7 +888,8 @@ img.preloaded {
     /* inset soft shadow along the bottom for thickness */
     inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18);
 
-    }
+    
+}
 
 /* Smooth toolbar transitions for explore/bertie pages - desktop only */
 @media (min-width: 769px) {
