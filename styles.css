@@ -516,7 +516,7 @@ width: 20vw;  }
 p {
   font-family: 'inter', Arial, sans-serif;
   font-size: 18px;
-  color: #605D5D;
+  color: #bd0000;
   font-weight: 500;
   line-height: 1.65;
   letter-spacing: 0.25px;
@@ -1055,7 +1055,8 @@ border: 1px solid rgba(13, 11, 70, 0.05);
   padding-top: 16px;
   padding-right: 16px;
   padding-bottom: 16px;
-  padding-left: 16px;}
+  padding-left: 16px;
+  display: none;}
       
  
  
