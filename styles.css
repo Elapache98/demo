@@ -54,6 +54,8 @@ body.article-page {
 .landing-content {
   will-change: transform;
   transform: translateZ(0);
+
+  border-radius: 64px;
 }
 
 #particleCanvas {
