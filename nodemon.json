@@ -1,0 +1,7 @@
+{
+  "watch": ["server.js"],
+  "ext": "js",
+  "ignore": ["node_modules", ".git"],
+  "delay": 800,
+  "signal": "SIGTERM"
+}

@@ -185,8 +185,32 @@
   <script src="index.js"></script>
   <script src="particles.js"></script>
   <script src="image-optimizer.js"></script>
+  <script>
+    window.__SHOVEL_CONFIG = {
+      repo: "Elapache98/demo",
+      baseBranch: "main",
+      apiUrl: "/api/shovel/pr",
+    };
+  </script>
   <script type="module" src="shovel.js"></script>
-
+  <script>
+    (function () {
+      var host = location.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1") return;
+      var last = null;
+      function poll() {
+        fetch("/__shovel-reload-check?t=" + Date.now(), { cache: "no-store" })
+          .then(function (r) { return r.text(); })
+          .then(function (v) {
+            if (last !== null && v !== last) location.reload();
+            last = v;
+          })
+          .catch(function () {});
+      }
+      setInterval(poll, 400);
+      poll();
+    })();
+  </script>
 
 </body>
 </html>

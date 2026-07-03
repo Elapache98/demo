@@ -1,3 +1,4 @@
+/* ==========================================================================
    Shovel editor UI
    ========================================================================== */
 
@@ -14,15 +15,29 @@
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 999px;
-  border: none;
-  background: #111827;
-  color: #fff;
-  font-size: 22px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+}
+
+.shovel-fab-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+  /* PNG has trailing speed lines — nudge for optical center in the circle */
+  transform: translate(-2px, 1px);
 }
 
 .shovel-panel {
@@ -48,7 +63,11 @@
 
 .shovel-tab {
   flex: 1;
-  padding: 10px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
@@ -58,6 +77,7 @@
   font-weight: 500;
   cursor: pointer;
   margin-bottom: -1px;
+  white-space: nowrap;
 }
 
 .shovel-tab--active {
@@ -77,7 +97,8 @@
   display: flex;
 }
 
-.shovel-tab-panel .shovel-section.shovel-props {
+.shovel-tab-panel .shovel-section.shovel-props,
+.shovel-tab-panel .shovel-section.shovel-tracked {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -106,6 +127,15 @@
   flex-shrink: 0;
   border-bottom: none;
   border-top: 1px solid #e5e7eb;
+}
+
+.shovel-panel .shovel-footer {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.shovel-github-actions {
+  flex-wrap: nowrap;
 }
 
 .shovel-close {
@@ -260,20 +290,260 @@
   color: #475569;
 }
 
-.shovel-prop-row {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
-  font-size: 13px;
+.shovel-prop-group {
+  margin-bottom: 16px;
 }
 
-.shovel-prop-row input {
+.shovel-prop-group:last-child {
+  margin-bottom: 0;
+}
+
+.shovel-prop-group__title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.shovel-prop-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.shovel-prop-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.shovel-spacing-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.shovel-spacing-card {
+  min-width: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.shovel-spacing-card--padding {
+  border-style: solid;
+}
+
+.shovel-spacing-card--margin {
+  border-style: dashed;
+}
+
+.shovel-spacing-card__label {
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #3f3f46;
+  background: #f4f4f5;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.shovel-spacing {
+  display: grid;
+  grid-template-columns: minmax(40px, 1fr) auto minmax(40px, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 5px;
+  align-items: center;
+  padding: 10px 8px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  min-width: 0;
+}
+
+.shovel-spacing--padding {
+  background: transparent;
+}
+
+.shovel-spacing--margin {
+  background: transparent;
+}
+
+.shovel-spacing-side--top {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 100%;
+  max-width: 48px;
+}
+
+.shovel-spacing-side--left {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: end;
+  width: 100%;
+  max-width: 48px;
+}
+
+.shovel-spacing-side--right {
+  grid-column: 3;
+  grid-row: 2;
+  justify-self: start;
+  width: 100%;
+  max-width: 48px;
+}
+
+.shovel-spacing-side--bottom {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: center;
+  width: 100%;
+  max-width: 48px;
+}
+
+.shovel-spacing-core {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  max-width: 48px;
+  height: 36px;
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shovel-spacing-side input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 26px;
+  padding: 0 4px;
+  border: 1px solid #e4e4e7;
+  border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  background: #fff;
+  color: #27272a;
+}
+
+.shovel-spacing-side input::placeholder {
+  color: #a1a1aa;
+}
+
+.shovel-spacing-side input:hover {
+  border-color: #d4d4d8;
+}
+
+.shovel-spacing-side input:focus {
+  outline: none;
+  border-color: #71717a;
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.12);
+}
+
+.shovel-spacing-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+}
+
+.shovel-spacing-link:hover {
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.shovel-spacing-link--active {
+  color: #52525b;
+  background: rgba(24, 24, 27, 0.08);
+}
+
+.shovel-prop-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.shovel-prop-field span {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #64748b;
+  letter-spacing: 0.01em;
+}
+
+.shovel-prop-field input,
+.shovel-prop-field select {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font: inherit;
+  background: #fff;
+}
+
+.shovel-prop-field select {
+  cursor: pointer;
+}
+
+.shovel-color-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shovel-color-swatch {
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.shovel-color-swatch input[type="color"] {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.shovel-color-swatch input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.shovel-color-swatch input[type="color"]::-webkit-color-swatch {
+  border: none;
+}
+
+.shovel-color-swatch input[type="color"]::-moz-color-swatch {
+  border: none;
+}
+
+.shovel-color-hex {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .shovel-settings label {
@@ -298,6 +568,11 @@
   padding: 10px 14px;
   font: inherit;
   cursor: pointer;
+}
+
+.shovel-panel .shovel-footer .shovel-btn {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .shovel-btn-primary {
@@ -337,3 +612,106 @@
   z-index: 2147483645;
   box-sizing: border-box;
 }
+
+.shovel-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #f5f5f5;
+  border: 1px solid #e5e7eb;
+  color: #333;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.shovel-tracked {
+  flex: 1;
+  min-height: 0;
+}
+
+.shovel-tracked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.shovel-tracked-empty {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.shovel-tracked-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shovel-tracked-item:hover {
+  border-color: #93c5fd;
+}
+
+.shovel-tracked-item--active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.shovel-tracked-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.shovel-tracked-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.shovel-tracked-undo {
+  padding: 4px 10px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.shovel-tracked-source {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.shovel-tracked-changes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.shovel-tracked-changes li {
+  margin-bottom: 4px;
+}
+
+.shovel-tracked-from {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.shovel-tracked-to {
+  color: #047857;
+  font-weight: 500;
+}
+ 
