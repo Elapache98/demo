@@ -169,7 +169,10 @@ transition: box-shadow .25s;
   margin-bottom: 0px;
   margin-top: 0px;
   height: 75.4453px;
-}
+
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-heading);
+  font-size: var(--font-size-h1);}
 
 
 .answer-content {
@@ -504,10 +507,13 @@ width: 20vw;  }
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 8px;
-  color: #ff7070;
+  margin-bottom: 0px;
+  color: var(--color-accent);
   
-}
+
+  margin-top: 0px;
+  margin-right: 0px;
+  margin-left: 0px;}
 
 
 
@@ -524,7 +530,7 @@ width: 20vw;  }
 p {
   font-family: 'inter', Arial, sans-serif;
   font-size: 18px;
-  color: #000333;
+  color: var(--color-text-primary);
   font-weight: 500;
   line-height: 1.65;
   letter-spacing: 0.25px;
