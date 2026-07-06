@@ -1,2 +1,15 @@
-// Reserved for future Shovel token-enforcer PR targets.
-// Not imported at build time — see docs when enabling v1 enforcer.
+// Shovel visual edits — imported after legacy styles so these overrides always win.
+// PRs patch this file only; Netlify runs `npm run build` to compile styles.css.
+
+h3 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-heading);
+  margin-top: 40px;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin-top: 150.25px;
+}

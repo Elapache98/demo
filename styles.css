@@ -12820,5 +12820,17 @@ html {
   }
 }
 
+h3 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-heading);
+  margin-top: 40px;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin-top: 150.25px;
+}
 
 /*# sourceMappingURL=styles.css.map */

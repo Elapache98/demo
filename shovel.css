@@ -703,7 +703,8 @@
   height: 14px;
   flex-shrink: 0;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 50%;
+  border-radius: 4px;
+  corner-shape: squircle;
   background: #fff;
 }
 
@@ -856,7 +857,8 @@
   height: 36px;
   flex-shrink: 0;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 10px;
+  corner-shape: squircle;
   overflow: hidden;
   cursor: pointer;
 }
@@ -877,10 +879,12 @@
 
 .shovel-color-swatch input[type="color"]::-webkit-color-swatch {
   border: none;
+  border-radius: 8px;
 }
 
 .shovel-color-swatch input[type="color"]::-moz-color-swatch {
   border: none;
+  border-radius: 8px;
 }
 
 .shovel-color-hex {
@@ -948,6 +952,13 @@
 
 .shovel-status[data-type="success"] {
   color: #047857;
+}
+
+.shovel-status a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .shovel-highlight {

@@ -38,13 +38,20 @@ function parseSource(sourceAttr) {
   const splitAt = sourceAttr.indexOf(":");
   if (splitAt === -1) throw new Error("Invalid source: " + sourceAttr);
   return {
-    file: sourceAttr.slice(0, splitAt),
-    selector: sourceAttr.slice(splitAt + 1),
+    file: sourceAttr.slice(0, splitAt).trim(),
+    selector: sourceAttr.slice(splitAt + 1).trim(),
   };
 }
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function declarationPattern(property) {
+  return new RegExp(
+    "(?:^|[\\n;])\\s*" + escapeRegex(property) + "\\s*:[^;\\n]*;?",
+    "m",
+  );
 }
 
 function setPropertyInRule(body, property, value) {
@@ -53,12 +60,14 @@ function setPropertyInRule(body, property, value) {
 
   for (var i = 0; i < candidates.length; i++) {
     var prop = candidates[i];
-    var propPattern = new RegExp(
-      "\\s*" + escapeRegex(prop) + "\\s*:[^;\\n]*;?",
-      "i",
-    );
+    var propPattern = declarationPattern(prop);
     if (propPattern.test(body)) {
-      return body.replace(propPattern, "\n  " + prop + ": " + value + ";");
+      return body.replace(propPattern, function (match) {
+        var prefix = match.match(/^[\n;]/) ? match[0] : "";
+        var indent = match.slice(prefix.length).match(/^\s*/);
+        var lead = prefix + (indent ? indent[0] : "");
+        return lead + prop + ": " + value + ";";
+      });
     }
   }
   return body + "\n  " + property + ": " + value + ";";
@@ -128,21 +137,23 @@ function insertCssRule(cssText, selector, changes) {
 }
 
 function applyCssChanges(cssText, selector, changes) {
+  const normalizedSelector = (selector || "").trim();
+  if (!normalizedSelector) throw new Error("Missing CSS selector for Shovel edit.");
   const rulePattern = new RegExp(
-    "(" + escapeRegex(selector) + "\\s*\\{)([\\s\\S]*?)(\\})",
+    "(" + escapeRegex(normalizedSelector) + "\\s*\\{)([\\s\\S]*?)(\\})",
     "gm",
   );
   const matches = [...cssText.matchAll(rulePattern)];
 
   const baseMatches = matches.filter(function (m) {
-    return !isInsideMediaBlock(cssText, m.index) && !isGroupedSelectorMatch(m, selector);
+    return !isInsideMediaBlock(cssText, m.index) && !isGroupedSelectorMatch(m, normalizedSelector);
   });
 
   if (baseMatches.length === 0) {
     if (matches.length === 0) {
-      return insertCssRule(cssText, selector, changes);
+      return insertCssRule(cssText, normalizedSelector, changes);
     }
-    return insertCssRule(cssText, selector, changes);
+    return insertCssRule(cssText, normalizedSelector, changes);
   }
 
   let target = baseMatches[0];
@@ -185,6 +196,11 @@ function rebuildStylesFromScss() {
   const mainScss = path.join(__dirname, "styles", "main.scss");
   if (!fs.existsSync(mainScss)) return false;
   execSync("npm run build:styles", { cwd: __dirname, stdio: "pipe" });
+  const cssPath = resolveSafePath("styles.css");
+  const cssOut = fs.readFileSync(cssPath, "utf8");
+  if (cssOut.includes("body::before") && cssOut.includes("Error:")) {
+    throw new Error("SCSS compile failed — styles.css contains a Sass error");
+  }
   return true;
 }
 
@@ -193,12 +209,20 @@ function finalizeCssForDeploy(cssText) {
 }
 
 const SCSS_LEGACY = "styles/styles.legacy.scss";
+const SCSS_EDITABLE = "styles/_shovel-editable.scss";
 const SCSS_PIPELINE_FILES = [
+  "package.json",
+  "package-lock.json",
+  "netlify.toml",
   "styles/main.scss",
   "styles/_tokens.scss",
   SCSS_LEGACY,
-  "netlify.toml",
+  SCSS_EDITABLE,
 ];
+
+const SHOVEL_EDITABLE_HEADER =
+  "// Shovel visual edits — imported after legacy styles so these overrides always win.\n" +
+  "// PRs patch this file only; run `npm run build:styles` to compile styles.css.\n\n";
 
 async function remoteFileExists(github, filePath) {
   try {
@@ -209,43 +233,57 @@ async function remoteFileExists(github, filePath) {
   }
 }
 
-/** Patch SCSS source, rebuild styles.css — same pipeline as local npm start. */
+/** Patch shovel-editable SCSS, rebuild styles.css — same pipeline as local npm start. */
 async function buildPrStyleFiles(github, fileEdits) {
-  let scssText;
+  const localEditablePath = resolveSafePath(SCSS_EDITABLE);
+  let editableText;
   try {
-    scssText = await github.fetchFile(SCSS_LEGACY);
+    editableText = await github.fetchFile(SCSS_EDITABLE);
   } catch (_err) {
-    const localPath = resolveSafePath(SCSS_LEGACY);
-    if (fs.existsSync(localPath)) {
-      scssText = fs.readFileSync(localPath, "utf8");
+    if (fs.existsSync(localEditablePath)) {
+      editableText = fs.readFileSync(localEditablePath, "utf8");
     }
   }
-  if (!scssText) return null;
-
-  for (const edit of fileEdits) {
-    scssText = applyCssChanges(scssText, edit.selector, edit.changes);
+  if (!editableText) {
+    editableText = SHOVEL_EDITABLE_HEADER;
   }
 
-  const scssPath = resolveSafePath(SCSS_LEGACY);
-  fs.mkdirSync(path.dirname(scssPath), { recursive: true });
-  fs.writeFileSync(scssPath, scssText, "utf8");
-  if (!rebuildStylesFromScss()) return null;
+  for (const edit of fileEdits) {
+    editableText = applyCssChanges(editableText, edit.selector, edit.changes);
+  }
 
-  const files = [{ filePath: SCSS_LEGACY, content: scssText }];
+  const previousEditable = fs.existsSync(localEditablePath)
+    ? fs.readFileSync(localEditablePath, "utf8")
+    : "";
+  fs.mkdirSync(path.dirname(localEditablePath), { recursive: true });
+  fs.writeFileSync(localEditablePath, editableText, "utf8");
+  try {
+    if (!rebuildStylesFromScss()) return null;
+  } catch (err) {
+    if (previousEditable) fs.writeFileSync(localEditablePath, previousEditable, "utf8");
+    try {
+      rebuildStylesFromScss();
+    } catch (_restoreErr) {
+      /* best effort */
+    }
+    throw err;
+  }
+
+  const cssPath = resolveSafePath("styles.css");
+  const files = [{ filePath: SCSS_EDITABLE, content: editableText }];
   files.push({
     filePath: "styles.css",
-    content: fs.readFileSync(resolveSafePath("styles.css"), "utf8"),
+    content: finalizeCssForDeploy(fs.readFileSync(cssPath, "utf8")),
   });
   return files;
 }
 
-async function appendMissingPipelineFiles(github, filesToCommit) {
+function bootstrapPipelineFiles(filesToCommit) {
   const have = new Set(filesToCommit.map(function (f) { return f.filePath; }));
   for (const rel of SCSS_PIPELINE_FILES) {
     if (have.has(rel)) continue;
     const localPath = resolveSafePath(rel);
     if (!fs.existsSync(localPath)) continue;
-    if (await remoteFileExists(github, rel)) continue;
     filesToCommit.push({
       filePath: rel,
       content: fs.readFileSync(localPath, "utf8"),
@@ -462,10 +500,18 @@ app.post("/api/shovel/pr", async (req, res) => {
       }
 
       if (file === "styles.css") {
+        const hasPipeline = fs.existsSync(resolveSafePath("styles/main.scss"));
         const scssBuilt = await buildPrStyleFiles(github, fileEdits);
         if (scssBuilt) {
           scssBuilt.forEach(function (f) { filesToCommit.push(f); });
+          bootstrapPipelineFiles(filesToCommit);
           continue;
+        }
+        if (hasPipeline) {
+          throw new Error(
+            "Could not compile Shovel edits through the SCSS pipeline. " +
+            "Fix styles/_shovel-editable.scss locally, then try again.",
+          );
         }
       }
 
@@ -476,7 +522,7 @@ app.post("/api/shovel/pr", async (req, res) => {
       filesToCommit.push({ filePath: file, content: finalizeCssForDeploy(cssText) });
     }
 
-    await appendMissingPipelineFiles(github, filesToCommit);
+    bootstrapPipelineFiles(filesToCommit);
 
     prBodyParts.push("_Created by Shovel_");
 
@@ -541,6 +587,7 @@ app.post("/api/shovel/sync-from-main", async (req, res) => {
 
   try {
     const github = createGitHubClient(GITHUB_TOKEN, SHOVEL_REPO, SHOVEL_BASE_BRANCH);
+    const remoteHasPipeline = await remoteFileExists(github, "styles/main.scss");
     const synced = [];
     const unchanged = [];
 
@@ -549,6 +596,16 @@ app.post("/api/shovel/sync-from-main", async (req, res) => {
         throw new Error("Invalid file path: " + file);
       }
       const safePath = resolveSafePath(file);
+
+      if (file === "styles.css" && !remoteHasPipeline && fs.existsSync(resolveSafePath("styles/main.scss"))) {
+        if (rebuildStylesFromScss()) {
+          synced.push("styles.css (rebuilt from local SCSS — remote has no pipeline yet)");
+        } else {
+          unchanged.push(file);
+        }
+        continue;
+      }
+
       const remoteContent = await github.fetchFile(file);
       let localContent = "";
       try {
