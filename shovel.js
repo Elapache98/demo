@@ -2119,8 +2119,18 @@
 
   // --- Boot ---
 
+  /** Shovel FAB + drawer only on local staging — not Netlify preview/prod. */
+  function isShovelEnabled() {
+    var config = window.__SHOVEL_CONFIG;
+    if (config && config.enabled === true) return true;
+    if (config && config.enabled === false) return false;
+    var host = location.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+  }
+
   async function boot() {
     if (window.__SHOVEL_BOOTED) return;
+    if (!isShovelEnabled()) return;
     if (!document.querySelector("[data-shovel-source]")) {
       console.warn("[Shovel] No stamped elements found.");
       return;
