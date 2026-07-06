@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "tokensFile": "styles/_tokens.scss",
+  "editableFile": "styles/_shovel-editable.scss",
+  "legacyFile": "styles/styles.legacy.scss",
+  "entryFile": "styles/main.scss",
+  "outputCss": "styles.css",
+  "propertyTokenGroups": {
+    "color": [
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-text-muted",
+      "--color-text-body",
+      "--color-heading-h3",
+      "--color-heading-h4",
+      "--color-accent",
+      "--color-button-primary-text"
+    ],
+    "background-color": [
+      "--color-surface",
+      "--color-surface-elevated",
+      "--color-surface-footer",
+      "--color-page-bg",
+      "--color-button-primary-bg",
+      "--color-accent"
+    ],
+    "padding-top": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--layout-card-padding"],
+    "padding-right": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--layout-card-padding"],
+    "padding-bottom": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--layout-card-padding"],
+    "padding-left": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--layout-card-padding"],
+    "margin-top": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--space-8"],
+    "margin-right": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--space-8"],
+    "margin-bottom": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--space-8"],
+    "margin-left": ["--space-1", "--space-2", "--space-3", "--space-4", "--space-5", "--space-6", "--space-8"],
+    "font-size": ["--font-size-h1", "--font-size-h3", "--font-size-h4", "--font-size-body", "--font-size-button", "--font-size-small"],
+    "font-weight": ["--font-weight-heading", "--font-weight-body", "--font-weight-medium"],
+    "border-radius": ["--radius-sm", "--radius-md", "--radius-card", "--radius-pill", "--radius-logo"],
+    "gap": ["--space-2", "--space-4", "--layout-grid-gap", "--layout-toolbar-gap"]
+  },
+  "backgroundColorAllowTags": ["card", "button", "page"],
+  "tagRules": {
+    "photos": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    },
+    "grid": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    },
+    "nav": {
+      "hideProperties": ["color", "background-color"]
+    },
+    "logo": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    }
+  },
+  "sourceRules": {
+    ".photo-row": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    },
+    ".landing-grid": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    },
+    ".floating-toolbar": {
+      "hideProperties": ["color", "background-color"]
+    },
+    ".floating-logo": {
+      "hideProperties": ["color", "background-color", "font-size", "font-weight"]
+    }
+  }
+}
