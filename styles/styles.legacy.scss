@@ -67,8 +67,8 @@ body.article-page {
 
 #actionButton {
   width: fit-content;
-  background: var(--color-button-primary-bg);
-  color: white;
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
   border: none;
   padding: 10px 16px;
   border-radius: var(--radius-pill);
@@ -122,7 +122,7 @@ body.article-page {
 
 .landing-grid {
   margin-top: 25vh;
-  display: grid;
+  display: flex;
   grid-template-columns: 1fr 1fr;
   gap: var(--layout-grid-gap);
   justify-content: start;
