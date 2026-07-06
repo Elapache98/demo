@@ -67,8 +67,8 @@ body.article-page {
 
 #actionButton {
   width: fit-content;
-  background: var(--color-page-bg);
-  color: var(--color-text-primary);
+  background: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
   border: none;
   padding: 10px 16px;
   border-radius: var(--radius-pill);
@@ -122,14 +122,15 @@ body.article-page {
 
 .landing-grid {
   margin-top: 25vh;
-  display: flex;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--layout-grid-gap);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
   justify-content: start;
   align-items: stretch;
   max-width: var(--layout-max-width);
   padding: var(--space-4);
-}
+
+  width: 800px;}
 
 .about-grid {
   margin-top: 15vh;
@@ -157,6 +158,12 @@ body.article-page {
   transition: box-shadow 0.25s;
   box-shadow: var(--card-box-shadow-1-x) var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
 }
+.landing-content h1 {
+
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-heading);
+}
+
 
 .answer-content {
   min-width: 0;
@@ -193,6 +200,12 @@ body.article-page {
 
 /* Keep 3 columns for all desktop sizes */
 /* Work page layout - desktop only */
+
+ h3 {
+
+  color: var(--color-heading-h3);
+  font-size: var(--font-size-h4);
+}
 @media (min-width: 769px) {
   .work-layout {
     display: flex;
@@ -813,7 +826,7 @@ img.preloaded {
   bottom: auto;
   transform: translateX(-50%);
   display: flex;
-  gap: 1.5rem;
+  gap: var(--layout-grid-gap);
   /* Liquid glass: low-opacity tint so the gaussian-blurred backdrop reads through */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.22) 100%);
   border-radius: 28px;
