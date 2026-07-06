@@ -135,7 +135,7 @@ body.article-page {
 #actionButton {
   width: fit-content;
   background: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
+  color: white;
   border: none;
   padding: 10px 16px;
   border-radius: var(--radius-pill);
@@ -190,13 +190,12 @@ body.article-page {
 .landing-grid {
   margin-top: 25vh;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--layout-grid-gap);
   justify-content: start;
   align-items: stretch;
   max-width: var(--layout-max-width);
   padding: var(--space-4);
-  width: 800px;
 }
 
 .about-grid {
@@ -224,11 +223,6 @@ body.article-page {
   border-width: 1px;
   transition: box-shadow 0.25s;
   box-shadow: var(--card-box-shadow-1-x) var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
-}
-
-.landing-content h1 {
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-heading);
 }
 
 .answer-content {
@@ -266,12 +260,6 @@ body.article-page {
 
 /* Keep 3 columns for all desktop sizes */
 /* Work page layout - desktop only */
-h3 {
-  color: var(--color-heading-h3);
-  font-size: var(--font-size-h4);
-  font-weight: var(--font-weight-medium);
-}
-
 @media (min-width: 769px) {
   .work-layout {
     display: flex;
@@ -892,7 +880,7 @@ img.preloaded {
   bottom: auto;
   transform: translateX(-50%);
   display: flex;
-  gap: var(--layout-grid-gap);
+  gap: 1.5rem;
   /* Liquid glass: low-opacity tint so the gaussian-blurred backdrop reads through */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.22) 100%);
   border-radius: 28px;
@@ -12832,5 +12820,17 @@ html {
   }
 }
 
+h3 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-heading);
+  margin-top: 40px;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin-top: 150.25px;
+}
 
 /*# sourceMappingURL=styles.css.map */
