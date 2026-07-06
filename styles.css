@@ -227,7 +227,7 @@ body.article-page {
 }
 
 .landing-content h1 {
-  font-size: var(--font-size-h3);
+  font-size: var(--font-size-h1);
   font-weight: var(--font-weight-heading);
 }
 
@@ -269,6 +269,7 @@ body.article-page {
 h3 {
   color: var(--color-heading-h3);
   font-size: var(--font-size-h4);
+  font-weight: var(--font-weight-medium);
 }
 
 @media (min-width: 769px) {
