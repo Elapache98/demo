@@ -12821,16 +12821,25 @@ html {
 }
 
 h3 {
-  font-size: var(--font-size-h1);
+  font-size: var(--font-size-h3);
   font-weight: var(--font-weight-heading);
   margin-top: 40px;
 }
 
 .landing-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
   margin-top: 150.25px;
+}
+
+.last-row {
+  height: 106.297px;
+}
+
+h4 {
+  font-size: var(--font-size-h3);
+  color: var(--color-text-secondary);
 }
 
 /*# sourceMappingURL=styles.css.map */
