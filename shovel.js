@@ -2119,8 +2119,14 @@
 
   // --- Boot ---
 
+  function isShovelStagingHost() {
+    var host = location.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+  }
+
   async function boot() {
     if (window.__SHOVEL_BOOTED) return;
+    if (!isShovelStagingHost()) return;
     if (!document.querySelector("[data-shovel-source]")) {
       console.warn("[Shovel] No stamped elements found.");
       return;
