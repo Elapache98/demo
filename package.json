@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prestart": "npm run stop",
+    "build": "npm run build:styles",
+    "build:styles": "sass styles/main.scss styles.css --load-path=styles",
+    "watch:styles": "sass --watch styles/main.scss styles.css --load-path=styles",
+    "prestart": "npm run build:styles && npm run stop",
     "start": "nodemon server.js",
     "dev": "npm start",
     "stop": "lsof -ti :3847 | xargs kill -9 2>/dev/null || true",
@@ -15,6 +18,7 @@
   },
   "devDependencies": {
     "chokidar": "^5.0.0",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "sass": "^1.83.0"
   }
 }

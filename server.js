@@ -1,8 +1,10 @@
 import "dotenv/config";
+import { execSync } from "child_process";
 import express from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { ensureRootTokensInCss, loadShovelConfig, loadTokensFromFile } from "./lib/tokens.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -179,6 +181,78 @@ function resolveSafePath(relativePath) {
   return resolved;
 }
 
+function rebuildStylesFromScss() {
+  const mainScss = path.join(__dirname, "styles", "main.scss");
+  if (!fs.existsSync(mainScss)) return false;
+  execSync("npm run build:styles", { cwd: __dirname, stdio: "pipe" });
+  return true;
+}
+
+function finalizeCssForDeploy(cssText) {
+  return ensureRootTokensInCss(cssText, __dirname);
+}
+
+const SCSS_LEGACY = "styles/styles.legacy.scss";
+const SCSS_PIPELINE_FILES = [
+  "styles/main.scss",
+  "styles/_tokens.scss",
+  SCSS_LEGACY,
+  "netlify.toml",
+];
+
+async function remoteFileExists(github, filePath) {
+  try {
+    await github.fetchFile(filePath);
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+/** Patch SCSS source, rebuild styles.css — same pipeline as local npm start. */
+async function buildPrStyleFiles(github, fileEdits) {
+  let scssText;
+  try {
+    scssText = await github.fetchFile(SCSS_LEGACY);
+  } catch (_err) {
+    const localPath = resolveSafePath(SCSS_LEGACY);
+    if (fs.existsSync(localPath)) {
+      scssText = fs.readFileSync(localPath, "utf8");
+    }
+  }
+  if (!scssText) return null;
+
+  for (const edit of fileEdits) {
+    scssText = applyCssChanges(scssText, edit.selector, edit.changes);
+  }
+
+  const scssPath = resolveSafePath(SCSS_LEGACY);
+  fs.mkdirSync(path.dirname(scssPath), { recursive: true });
+  fs.writeFileSync(scssPath, scssText, "utf8");
+  if (!rebuildStylesFromScss()) return null;
+
+  const files = [{ filePath: SCSS_LEGACY, content: scssText }];
+  files.push({
+    filePath: "styles.css",
+    content: fs.readFileSync(resolveSafePath("styles.css"), "utf8"),
+  });
+  return files;
+}
+
+async function appendMissingPipelineFiles(github, filesToCommit) {
+  const have = new Set(filesToCommit.map(function (f) { return f.filePath; }));
+  for (const rel of SCSS_PIPELINE_FILES) {
+    if (have.has(rel)) continue;
+    const localPath = resolveSafePath(rel);
+    if (!fs.existsSync(localPath)) continue;
+    if (await remoteFileExists(github, rel)) continue;
+    filesToCommit.push({
+      filePath: rel,
+      content: fs.readFileSync(localPath, "utf8"),
+    });
+  }
+}
+
 function createGitHubClient(token, repo, baseBranch) {
   const [owner, name] = repo.split("/");
   if (!owner || !name) throw new Error("SHOVEL_REPO must be org/repo");
@@ -243,20 +317,26 @@ function createGitHubClient(token, repo, baseBranch) {
 
       for (const fileUpdate of files) {
         const filePath = fileUpdate.filePath;
-        const existing = await request(
-          "/repos/" + owner + "/" + name + "/contents/" + encodeURIComponent(filePath) + "?ref=" + encodeURIComponent(baseBranch),
-        );
-        if (!existing?.sha) throw new Error("File not found: " + filePath);
+        let existing = null;
+        try {
+          existing = await request(
+            "/repos/" + owner + "/" + name + "/contents/" + encodeURIComponent(filePath) + "?ref=" + encodeURIComponent(baseBranch),
+          );
+        } catch (_err) {
+          existing = null;
+        }
+
+        const payload = {
+          message: "Shovel: update " + filePath,
+          content: encodeBase64(fileUpdate.content),
+          branch: branchName,
+        };
+        if (existing?.sha) payload.sha = existing.sha;
 
         await request("/repos/" + owner + "/" + name + "/contents/" + encodeURIComponent(filePath), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: "Shovel: update " + filePath,
-            content: encodeBase64(fileUpdate.content),
-            branch: branchName,
-            sha: existing.sha,
-          }),
+          body: JSON.stringify(payload),
         });
       }
 
@@ -281,6 +361,22 @@ app.get("/api/shovel/health", (_req, res) => {
     repo: SHOVEL_REPO,
     branch: SHOVEL_BASE_BRANCH,
   });
+});
+
+app.get("/api/shovel/tokens", (_req, res) => {
+  try {
+    const config = loadShovelConfig(__dirname);
+    const tokens = loadTokensFromFile(__dirname, config.tokensFile);
+    res.json({
+      tokens,
+      propertyTokenGroups: config.propertyTokenGroups || {},
+      sourceRules: config.sourceRules || {},
+      tagRules: config.tagRules || {},
+      backgroundColorAllowTags: config.backgroundColorAllowTags || [],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message || String(error) });
+  }
 });
 
 app.get("/api/shovel/test-github", async (_req, res) => {
@@ -355,9 +451,7 @@ app.post("/api/shovel/pr", async (req, res) => {
 
     const filesToCommit = [];
     for (const [file, fileEdits] of fileGroups) {
-      let cssText = await github.fetchFile(file);
       for (const edit of fileEdits) {
-        cssText = applyCssChanges(cssText, edit.selector, edit.changes);
         prBodyParts.push("### `" + edit.source + "`");
         prBodyParts.push("");
         for (const c of edit.changes) {
@@ -366,8 +460,23 @@ app.post("/api/shovel/pr", async (req, res) => {
         }
         prBodyParts.push("");
       }
-      filesToCommit.push({ filePath: file, content: cssText });
+
+      if (file === "styles.css") {
+        const scssBuilt = await buildPrStyleFiles(github, fileEdits);
+        if (scssBuilt) {
+          scssBuilt.forEach(function (f) { filesToCommit.push(f); });
+          continue;
+        }
+      }
+
+      let cssText = await github.fetchFile(file);
+      for (const edit of fileEdits) {
+        cssText = applyCssChanges(cssText, edit.selector, edit.changes);
+      }
+      filesToCommit.push({ filePath: file, content: finalizeCssForDeploy(cssText) });
     }
+
+    await appendMissingPipelineFiles(github, filesToCommit);
 
     prBodyParts.push("_Created by Shovel_");
 
@@ -454,6 +563,10 @@ app.post("/api/shovel/sync-from-main", async (req, res) => {
         fs.writeFileSync(safePath, remoteContent, "utf8");
         synced.push(file);
       }
+    }
+
+    if (rebuildStylesFromScss()) {
+      synced.push("styles.css (rebuilt from SCSS)");
     }
 
     res.json({

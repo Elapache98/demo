@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Compile SCSS → styles.css on every deploy so Netlify matches local
+# (npm start also runs build:styles via prestart).
