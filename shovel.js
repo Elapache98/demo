@@ -5,92 +5,87 @@
 (function Shovel() {
   "use strict";
 
-  const DISPLAY_OPTIONS = [
-    "block",
-    "inline",
-    "inline-block",
-    "flex",
-    "inline-flex",
-    "grid",
-    "inline-grid",
-    "none",
-    "contents",
-    "flow-root",
-    "list-item",
-    "table",
-    "table-row",
-    "table-cell",
-  ];
+  const STACK_OPTIONS = ["horizontal", "vertical"];
 
-  const DISPLAY_HINTS = {
-    block: "Stacks as a full-width box",
-    inline: "Sits in a line with text",
-    "inline-block": "Inline, but with box sizing",
-    flex: "Flexible row or column",
-    "inline-flex": "Compact flexible layout",
-    grid: "Even rows and columns",
-    "inline-grid": "Compact grid layout",
-    none: "Hides the element",
-    contents: "Container ignores itself",
-    "flow-root": "Contains floated children",
-    "list-item": "Shows like a list bullet",
-    table: "Table with rows and cells",
-    "table-row": "Acts as a table row",
-    "table-cell": "Acts as a table cell",
+  const STACK_HINTS = {
+    horizontal: "Items sit side by side",
+    vertical: "Items stack top to bottom",
   };
 
-  function formatDisplayLabel(value) {
-    return value
-      .split("-")
-      .map(function (part) {
-        return part.charAt(0).toUpperCase() + part.slice(1);
-      })
-      .join(" ");
+  const STACK_HORIZONTAL_COLUMNS = "repeat(2, minmax(0, 1fr))";
+  const STACK_VERTICAL_COLUMNS = "1fr";
+
+  function stackItemFromValue(value) {
+    var normalized = value === "vertical" ? "vertical" : "horizontal";
+    return {
+      value: normalized,
+      label: normalized === "vertical" ? "Vertical" : "Horizontal",
+      hint: STACK_HINTS[normalized] || "",
+    };
   }
 
-  function displayItemFromValue(value) {
-    return {
-      value: value,
-      label: formatDisplayLabel(value),
-      hint: DISPLAY_HINTS[value] || "",
-    };
+  function resolveComputedStack(el) {
+    if (!el) return "horizontal";
+    var style = getComputedStyle(el);
+    var display = style.display;
+    if (display === "flex" || display === "inline-flex") {
+      var fd = style.flexDirection;
+      if (fd === "column" || fd === "column-reverse") return "vertical";
+      return "horizontal";
+    }
+    if (display === "grid" || display === "inline-grid") {
+      var cols = (style.gridTemplateColumns || "").trim();
+      if (!cols || cols === "none") return "horizontal";
+      var tracks = cols.split(/\s+/).filter(function (part) {
+        return part && part !== "0px";
+      });
+      if (tracks.length <= 1) return "vertical";
+      return "horizontal";
+    }
+    return "horizontal";
+  }
+
+  function applyStackLayout(el, direction) {
+    if (!el) return;
+    el.style.setProperty("display", "grid", "important");
+    el.style.setProperty(
+      "grid-template-columns",
+      direction === "vertical" ? STACK_VERTICAL_COLUMNS : STACK_HORIZONTAL_COLUMNS,
+      "important",
+    );
+    el.style.removeProperty("flex-direction");
+    el.style.removeProperty("flex-wrap");
+  }
+
+  function expandStackChangeForPr(change, originals) {
+    if (change.property !== "stack") return [change];
+    var direction = change.value === "vertical" ? "vertical" : "horizontal";
+    var fromDir = originals.stack || "horizontal";
+    var fromColumns =
+      fromDir === "vertical" ? STACK_VERTICAL_COLUMNS : STACK_HORIZONTAL_COLUMNS;
+    var toColumns =
+      direction === "vertical" ? STACK_VERTICAL_COLUMNS : STACK_HORIZONTAL_COLUMNS;
+    return [
+      {
+        property: "display",
+        value: "grid",
+        original: originals.display || "",
+      },
+      {
+        property: "grid-template-columns",
+        value: toColumns,
+        original: originals["grid-template-columns"] || fromColumns,
+      },
+    ];
   }
 
   function renderDisplayVisual(value) {
     var box = 'fill="currentColor" rx="1"';
     var stroke = 'stroke="currentColor" stroke-width="1.25" fill="none"';
-    switch (value) {
-      case "block":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="4" y="3" width="24" height="5" ' + box + ' opacity="0.9"/><rect x="4" y="10" width="24" height="5" ' + box + ' opacity="0.55"/><rect x="4" y="17" width="24" height="4" ' + box + ' opacity="0.3"/></svg>';
-      case "inline":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><line x1="3" y1="14" x2="29" y2="14" stroke="currentColor" stroke-width="1" opacity="0.2"/><rect x="4" y="9" width="5" height="5" ' + box + ' opacity="0.85"/><rect x="11" y="9" width="5" height="5" ' + box + ' opacity="0.55"/><rect x="18" y="9" width="5" height="5" ' + box + ' opacity="0.35"/><rect x="25" y="9" width="3" height="5" ' + box + ' opacity="0.2"/></svg>';
-      case "inline-block":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="4" y="7" width="7" height="10" ' + box + ' opacity="0.85"/><rect x="13" y="7" width="7" height="10" ' + box + ' opacity="0.55"/><rect x="22" y="7" width="6" height="10" ' + box + ' opacity="0.35"/></svg>';
-      case "flex":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="3" y="5" width="26" height="14" ' + stroke + ' opacity="0.25"/><rect x="5" y="7" width="6" height="10" ' + box + ' opacity="0.85"/><rect x="13" y="7" width="6" height="10" ' + box + ' opacity="0.55"/><rect x="21" y="7" width="6" height="10" ' + box + ' opacity="0.35"/></svg>';
-      case "inline-flex":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="6" y="7" width="20" height="10" ' + stroke + ' opacity="0.25"/><rect x="8" y="9" width="4" height="6" ' + box + ' opacity="0.85"/><rect x="14" y="9" width="4" height="6" ' + box + ' opacity="0.55"/><rect x="20" y="9" width="4" height="6" ' + box + ' opacity="0.35"/></svg>';
-      case "grid":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="4" y="4" width="10" height="7" ' + box + ' opacity="0.85"/><rect x="16" y="4" width="12" height="7" ' + box + ' opacity="0.55"/><rect x="4" y="13" width="10" height="7" ' + box + ' opacity="0.55"/><rect x="16" y="13" width="12" height="7" ' + box + ' opacity="0.35"/></svg>';
-      case "inline-grid":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="7" y="5" width="18" height="14" ' + stroke + ' opacity="0.25"/><rect x="9" y="7" width="6" height="4" ' + box + ' opacity="0.85"/><rect x="17" y="7" width="6" height="4" ' + box + ' opacity="0.55"/><rect x="9" y="13" width="6" height="4" ' + box + ' opacity="0.55"/><rect x="17" y="13" width="6" height="4" ' + box + ' opacity="0.35"/></svg>';
-      case "none":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="6" y="5" width="20" height="14" ' + stroke + ' opacity="0.35" stroke-dasharray="3 2"/><line x1="9" y1="8" x2="23" y2="16" stroke="currentColor" stroke-width="1.5" opacity="0.7"/><line x1="23" y1="8" x2="9" y2="16" stroke="currentColor" stroke-width="1.5" opacity="0.7"/></svg>';
-      case "contents":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="5" y="4" width="22" height="16" ' + stroke + ' opacity="0.3" stroke-dasharray="3 2"/><rect x="8" y="8" width="7" height="8" ' + box + ' opacity="0.85"/><rect x="17" y="8" width="7" height="8" ' + box + ' opacity="0.55"/></svg>';
-      case "flow-root":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="4" y="4" width="24" height="16" ' + stroke + ' opacity="0.25"/><rect x="6" y="6" width="8" height="5" ' + box + ' opacity="0.55"/><rect x="6" y="13" width="20" height="5" ' + box + ' opacity="0.85"/></svg>';
-      case "list-item":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><circle cx="7" cy="8" r="1.5" fill="currentColor" opacity="0.85"/><rect x="11" y="6" width="17" height="4" ' + box + ' opacity="0.55"/><circle cx="7" cy="16" r="1.5" fill="currentColor" opacity="0.55"/><rect x="11" y="14" width="14" height="4" ' + box + ' opacity="0.35"/></svg>';
-      case "table":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="4" y="4" width="24" height="16" ' + stroke + ' opacity="0.35"/><line x1="4" y1="10" x2="28" y2="10" stroke="currentColor" opacity="0.35"/><line x1="4" y1="16" x2="28" y2="16" stroke="currentColor" opacity="0.35"/><line x1="14" y1="4" x2="14" y2="20" stroke="currentColor" opacity="0.35"/><rect x="5" y="5" width="8" height="4" ' + box + ' opacity="0.7"/><rect x="15" y="5" width="12" height="4" ' + box + ' opacity="0.45"/></svg>';
-      case "table-row":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="3" y="8" width="26" height="8" ' + stroke + ' opacity="0.35"/><rect x="5" y="10" width="7" height="4" ' + box + ' opacity="0.85"/><rect x="13" y="10" width="7" height="4" ' + box + ' opacity="0.55"/><rect x="21" y="10" width="6" height="4" ' + box + ' opacity="0.35"/></svg>';
-      case "table-cell":
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="8" y="6" width="16" height="12" ' + stroke + ' opacity="0.45"/><rect x="10" y="9" width="12" height="6" ' + box + ' opacity="0.65"/></svg>';
-      default:
-        return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="6" y="8" width="20" height="8" ' + box + ' opacity="0.4"/></svg>';
+    if (value === "vertical") {
+      return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="8" y="3" width="16" height="5" ' + box + ' opacity="0.9"/><rect x="8" y="10" width="16" height="5" ' + box + ' opacity="0.55"/><rect x="8" y="17" width="16" height="4" ' + box + ' opacity="0.35"/></svg>';
     }
+    return '<svg viewBox="0 0 32 24" width="32" height="24" aria-hidden="true"><rect x="3" y="7" width="7" height="10" ' + box + ' opacity="0.85"/><rect x="12" y="7" width="7" height="10" ' + box + ' opacity="0.55"/><rect x="21" y="7" width="7" height="10" ' + box + ' opacity="0.35"/></svg>';
   }
 
   function renderLayoutChipHtml(item, showHint) {
@@ -126,7 +121,7 @@
     var ariaLabel = config.ariaLabel || "";
     var selected = items.find(function (item) {
       return item.value === value;
-    }) || items[0] || displayItemFromValue(value);
+    }) || items[0] || stackItemFromValue(value);
     var optionsHtml = items
       .map(function (item) {
         var isSelected = item.value === value;
@@ -168,7 +163,7 @@
     menu.querySelectorAll(".shovel-dropdown__option").forEach(function (option) {
       option.addEventListener("click", function (event) {
         event.stopPropagation();
-        var item = displayItemFromValue(option.dataset.value || "");
+        var item = stackItemFromValue(option.dataset.value || "");
         item.label = option.dataset.label || item.label;
         setLayoutDropdownValue(dropdown, item);
         closeDropdown(dropdown);
@@ -214,7 +209,7 @@
       title: "Layout",
       columns: 2,
       items: [
-        { prop: "display", label: "Display", type: "select", options: DISPLAY_OPTIONS },
+        { prop: "stack", label: "Stack", type: "select", options: STACK_OPTIONS },
         { prop: "gap", label: "Gap", type: "text" },
         { prop: "border-radius", label: "Radius", type: "text" },
       ],
@@ -240,8 +235,8 @@
       throw new Error("Invalid data-shovel-source: " + sourceAttr);
     }
     return {
-      file: sourceAttr.slice(0, splitAt),
-      selector: sourceAttr.slice(splitAt + 1),
+      file: sourceAttr.slice(0, splitAt).trim(),
+      selector: sourceAttr.slice(splitAt + 1).trim(),
     };
   }
 
@@ -365,6 +360,9 @@
     var sourceRules = shovelMeta.sourceRules || {};
     var tagRules = shovelMeta.tagRules || {};
     var bgAllow = shovelMeta.backgroundColorAllowTags;
+    if (tag !== "grid") {
+      hidden.add("stack");
+    }
     if (Array.isArray(bgAllow) && tag && bgAllow.indexOf(tag) === -1) {
       hidden.add("background-color");
     }
@@ -413,11 +411,32 @@
       el.style.setProperty("background", previewValue, "important");
       return;
     }
+    if (prop === "stack") {
+      applyStackLayout(el, previewValue === "vertical" ? "vertical" : "horizontal");
+      return;
+    }
+    if (prop === "gap") {
+      el.style.setProperty("gap", previewValue, "important");
+      el.style.setProperty("row-gap", previewValue, "important");
+      el.style.setProperty("column-gap", previewValue, "important");
+      return;
+    }
     el.style.setProperty(prop, previewValue, "important");
   }
 
   function clearPreviewStyle(el, prop) {
     if (!el || !prop) return;
+    if (prop === "gap") {
+      el.style.removeProperty("gap");
+      el.style.removeProperty("row-gap");
+      el.style.removeProperty("column-gap");
+      return;
+    }
+    if (prop === "stack") {
+      el.style.removeProperty("display");
+      el.style.removeProperty("grid-template-columns");
+      return;
+    }
     el.style.removeProperty(prop);
     if (prop === "background-color") {
       el.style.removeProperty("background");
@@ -829,6 +848,7 @@
     const resetBtn = host.querySelector(".shovel-reset");
     const clearTrackedBtn = host.querySelector(".shovel-clear-tracked");
     const trackedListEl = host.querySelector(".shovel-tracked-list");
+    const trackedHintEl = host.querySelector(".shovel-tracked .shovel-hint");
     const trackedTabBadge = host.querySelector(".shovel-tab-badge");
     const tabButtons = host.querySelectorAll(".shovel-tab");
     const tabPanels = host.querySelectorAll(".shovel-tab-panel");
@@ -850,6 +870,8 @@
     let mergePollTimer = null;
     let pendingPrNumber = null;
     let pendingPrUrl = null;
+    let isSubmittingPr = false;
+    let prCleared = false;
     let persistTimer = null;
 
     const highlight = document.createElement("div");
@@ -862,23 +884,34 @@
       githubStatusEl.dataset.type = type || "info";
     }
 
-    function persistState() {
+    function setGithubStatusHtml(html, type) {
+      githubStatusEl.innerHTML = html;
+      githubStatusEl.dataset.type = type || "info";
+    }
+
+    function flushPersistStateNow() {
       clearTimeout(persistTimer);
-      persistTimer = setTimeout(function () {
-        try {
-          var payload = {
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
             version: 1,
             updatedAt: new Date().toISOString(),
             tracked: serializeTrackedChanges(trackedChanges),
+            prCleared: prCleared,
             pendingPr: pendingPrNumber
               ? { number: pendingPrNumber, url: pendingPrUrl || null }
               : null,
-          };
-          localStorage.setItem(storageKey, JSON.stringify(payload));
-        } catch (err) {
-          console.warn("[Shovel] Could not save state to localStorage:", err);
-        }
-      }, 150);
+          }),
+        );
+      } catch (err) {
+        console.warn("[Shovel] Could not save state to localStorage:", err);
+      }
+    }
+
+    function persistState() {
+      clearTimeout(persistTimer);
+      persistTimer = setTimeout(flushPersistStateNow, 150);
     }
 
     function clearPersistedState() {
@@ -897,6 +930,12 @@
         entry.changes.forEach(function (val, prop) {
           applyPreviewStyle(el, prop, val, shovelMeta.tokens);
         });
+        if (entry.changes.has("stack")) {
+          applyPreviewStyle(el, "stack", entry.changes.get("stack"), shovelMeta.tokens);
+        }
+        if (entry.changes.has("gap")) {
+          applyPreviewStyle(el, "gap", entry.changes.get("gap"), shovelMeta.tokens);
+        }
       });
     }
 
@@ -907,14 +946,26 @@
         var data = JSON.parse(raw);
         if (!data || data.version !== 1) return;
 
-        var restored = deserializeTrackedChanges(data.tracked);
-        restored.forEach(function (entry, source) {
-          trackedChanges.set(source, entry);
-        });
-        applyTrackedToPage();
-
         if (data.pendingPr && data.pendingPr.number) {
-          watchPrForMerge(data.pendingPr.number, data.pendingPr.url);
+          pendingPrNumber = data.pendingPr.number;
+          pendingPrUrl = data.pendingPr.url || null;
+        }
+        prCleared = Boolean(data.prCleared) || Boolean(pendingPrNumber);
+
+        if (!prCleared) {
+          var restored = deserializeTrackedChanges(data.tracked);
+          restored.forEach(function (entry, source) {
+            trackedChanges.set(source, entry);
+          });
+          applyTrackedToPage();
+        }
+
+        if (pendingPrNumber) {
+          watchPrForMerge(pendingPrNumber, pendingPrUrl);
+        } else if (prCleared) {
+          isSubmittingPr = false;
+          renderTrackedList();
+          updateSubmitState();
         }
       } catch (err) {
         console.warn("[Shovel] Could not restore state from localStorage:", err);
@@ -934,6 +985,10 @@
       pendingChanges.forEach(function (_val, prop) {
         out[prop] = originalValues.get(prop) || "";
       });
+      if (pendingChanges.has("stack")) {
+        out.display = originalValues.get("display") || "";
+        out["grid-template-columns"] = originalValues.get("grid-template-columns") || "";
+      }
       return out;
     }
 
@@ -972,6 +1027,15 @@
 
     function renderTrackedList() {
       if (!trackedListEl) return;
+      var awaitingMerge = (Boolean(pendingPrNumber) || prCleared) && trackedChanges.size === 0;
+      if (isSubmittingPr || awaitingMerge) {
+        if (trackedHintEl) trackedHintEl.hidden = true;
+        trackedListEl.innerHTML = "";
+        trackedListEl.hidden = true;
+        return;
+      }
+      if (trackedHintEl) trackedHintEl.hidden = false;
+      trackedListEl.hidden = false;
       if (trackedChanges.size === 0) {
         trackedListEl.innerHTML = '<p class="shovel-tracked-empty">No changes yet. Edit elements on the CSS tab, then submit a PR from here.</p>';
         return;
@@ -1082,6 +1146,7 @@
     }
 
     function resetAfterSync() {
+      prCleared = false;
       stripPreviewStylesFromPage();
       trackedChanges.clear();
       pendingChanges.clear();
@@ -1104,6 +1169,62 @@
       clearPersistedState();
     }
 
+    function snapshotOriginalValues(el) {
+      originalValues.clear();
+      if (!el) return;
+      EDITABLE_PROPERTIES.forEach(function (item) {
+        if (item.prop === "stack") {
+          originalValues.set("stack", resolveComputedStack(el));
+          originalValues.set("display", getComputedStyle(el).display);
+          originalValues.set(
+            "grid-template-columns",
+            getComputedStyle(el).gridTemplateColumns,
+          );
+          return;
+        }
+        originalValues.set(item.prop, getComputedStyle(el).getPropertyValue(item.prop).trim());
+      });
+    }
+
+    function resetAfterPrSubmit() {
+      prCleared = true;
+      stripPreviewStylesFromPage();
+      trackedChanges.clear();
+      pendingChanges.clear();
+      focusedTrackedSource = null;
+      hoveredTrackedSource = null;
+      if (selectedElement) {
+        snapshotOriginalValues(selectedElement);
+        renderPropertyEditors();
+      } else {
+        originalValues.clear();
+        if (propsEl) propsEl.innerHTML = "";
+      }
+      renderTrackedList();
+      updateSubmitState();
+      syncPageHighlight();
+      flushPersistStateNow();
+    }
+
+    function restoreTrackedBackup(backup, pendingBackup) {
+      prCleared = false;
+      trackedChanges.clear();
+      deserializeTrackedChanges(backup).forEach(function (entry, source) {
+        trackedChanges.set(source, entry);
+      });
+      applyTrackedToPage();
+      pendingChanges.clear();
+      if (pendingBackup) {
+        pendingBackup.forEach(function (val, prop) {
+          pendingChanges.set(prop, val);
+        });
+        if (selectedElement) renderPropertyEditors();
+      }
+      renderTrackedList();
+      updateSubmitState();
+      flushPersistStateNow();
+    }
+
     function collectShovelFiles() {
       var files = new Set();
       document.querySelectorAll("[data-shovel-source]").forEach(function (el) {
@@ -1118,12 +1239,24 @@
     function collectEditsForPr() {
       flushPendingToTracked();
       return Array.from(trackedChanges.values()).map(function (entry) {
+        var expandedChanges = [];
+        var expandedOriginals = Object.assign({}, entry.originals || {});
+        entry.changes.forEach(function (val, prop) {
+          if (prop === "stack") {
+            expandStackChangeForPr({ property: "stack", value: val }, entry.originals || {}).forEach(function (item) {
+              expandedChanges.push({ property: item.property, value: item.value });
+              if (item.original !== undefined) {
+                expandedOriginals[item.property] = item.original;
+              }
+            });
+            return;
+          }
+          expandedChanges.push({ property: prop, value: val });
+        });
         return {
           source: entry.source,
-          changes: Array.from(entry.changes.entries()).map(function (pair) {
-            return { property: pair[0], value: pair[1] };
-          }),
-          originals: entry.originals,
+          changes: expandedChanges,
+          originals: expandedOriginals,
         };
       });
     }
@@ -1236,6 +1369,10 @@
       const fragment = document.createDocumentFragment();
 
       function getPropValue(item) {
+        if (item.prop === "stack") {
+          if (pendingChanges.has("stack")) return pendingChanges.get("stack");
+          return resolveComputedStack(selectedElement);
+        }
         const raw = pendingChanges.has(item.prop)
           ? pendingChanges.get(item.prop)
           : computed.getPropertyValue(item.prop).trim();
@@ -1251,6 +1388,9 @@
 
       function applyPropChange(prop, value) {
         if (!prop || !selectedElement) return;
+        if (prCleared) {
+          prCleared = false;
+        }
         pendingChanges.set(prop, value);
         applyPreviewStyle(selectedElement, prop, value, shovelMeta.tokens);
         syncCurrentEditToTracked();
@@ -1489,20 +1629,16 @@
           const field = document.createElement("label");
           field.className = "shovel-prop-field";
 
-          if (item.prop === "display") {
-            var displayItems = [];
-            if (!hasValue && value) {
-              displayItems.push(displayItemFromValue(value));
-            }
-            options.forEach(function (opt) {
-              displayItems.push(displayItemFromValue(opt));
+          if (item.prop === "stack") {
+            var stackItems = STACK_OPTIONS.map(function (opt) {
+              return stackItemFromValue(opt);
             });
             field.innerHTML =
               "<span>" + escapeHtml(item.label) + "</span>" +
               buildLayoutDropdown({
                 prop: item.prop,
-                value: selectedValue,
-                items: displayItems,
+                value: getPropValue(item),
+                items: stackItems,
                 ariaLabel: item.label,
               });
             return field;
@@ -1770,10 +1906,7 @@
       selectedSource = el.getAttribute("data-shovel-source");
       selectedTag = el.getAttribute("data-shovel-tag") || el.tagName.toLowerCase();
       pendingChanges.clear();
-      originalValues.clear();
-      EDITABLE_PROPERTIES.forEach(function (item) {
-        originalValues.set(item.prop, getComputedStyle(el).getPropertyValue(item.prop).trim());
-      });
+      snapshotOriginalValues(el);
 
       var saved = trackedChanges.get(selectedSource);
       if (saved) {
@@ -1784,6 +1917,12 @@
           pendingChanges.set(prop, val);
           applyPreviewStyle(selectedElement, prop, val, shovelMeta.tokens);
         });
+        if (pendingChanges.has("stack")) {
+          applyPreviewStyle(selectedElement, "stack", pendingChanges.get("stack"), shovelMeta.tokens);
+        }
+        if (pendingChanges.has("gap")) {
+          applyPreviewStyle(selectedElement, "gap", pendingChanges.get("gap"), shovelMeta.tokens);
+        }
       }
 
       positionHighlight(el);
@@ -1956,9 +2095,20 @@
       pendingPrNumber = prNumber;
       pendingPrUrl = prUrl || null;
       stopMergeWatch();
-      var link = prUrl ? " — " + prUrl : "";
-      setGithubStatus("PR #" + prNumber + " open" + link + ". Will sync local files when merged.", "info");
-      persistState();
+      var prLabel = "PR #" + prNumber;
+      var statusHtml = "Changes sent to GitHub for review and merge. ";
+      if (prUrl) {
+        statusHtml +=
+          '<a href="' + escapeHtml(prUrl) + '" target="_blank" rel="noopener noreferrer">' +
+          escapeHtml(prLabel) + "</a>";
+      } else {
+        statusHtml += escapeHtml(prLabel);
+      }
+      statusHtml += ". We'll sync your local files once it's merged.";
+      setGithubStatusHtml(statusHtml, "success");
+      renderTrackedList();
+      updateSubmitState();
+      flushPersistStateNow();
 
       function checkMerge() {
         fetch("/api/shovel/pr/" + prNumber, { cache: "no-store" })
@@ -1968,14 +2118,19 @@
               stopMergeWatch();
               pendingPrNumber = null;
               pendingPrUrl = null;
-              persistState();
+              flushPersistStateNow();
+              renderTrackedList();
+              updateSubmitState();
               setGithubStatus("PR #" + prNumber + " merged — syncing local files from main…", "success");
               syncFromMain({ silent: true });
             } else if (data.state === "closed" && !data.merged) {
               stopMergeWatch();
               pendingPrNumber = null;
               pendingPrUrl = null;
-              persistState();
+              prCleared = false;
+              flushPersistStateNow();
+              renderTrackedList();
+              updateSubmitState();
               setGithubStatus("PR #" + prNumber + " was closed without merging.", "error");
               if (syncBtn) syncBtn.disabled = false;
             }
@@ -1991,8 +2146,15 @@
       var edits = collectEditsForPr();
       if (edits.length === 0) return;
 
-      submitBtn.disabled = true;
+      var trackedBackup = serializeTrackedChanges(trackedChanges);
+      var pendingBackup = pendingChanges.size > 0 ? new Map(pendingChanges) : null;
+
+      resetAfterPrSubmit();
+      isSubmittingPr = true;
+      renderTrackedList();
       stopMergeWatch();
+      pendingPrNumber = null;
+      pendingPrUrl = null;
       switchTab("tracked");
       setGithubStatus("Creating pull request (" + edits.length + " element" + (edits.length === 1 ? "" : "s") + ")...");
 
@@ -2003,17 +2165,23 @@
       })
         .then(parseApiResponse)
         .then(function (data) {
-          clearAllTracked({ revert: false });
-          updateSubmitState();
+          isSubmittingPr = false;
           watchPrForMerge(data.number, data.url);
+          renderTrackedList();
+          updateSubmitState();
         })
         .catch(function (error) {
+          isSubmittingPr = false;
+          if (prCleared || (error && error.name === "AbortError")) {
+            flushPersistStateNow();
+            return;
+          }
+          restoreTrackedBackup(trackedBackup, pendingBackup);
           var message = error.message || String(error);
           if (message === "Failed to fetch" || error.name === "TypeError") {
             message = "Cannot reach Shovel API. Run npm start and open http://localhost:3847.";
           }
           setGithubStatus(message, "error");
-          submitBtn.disabled = false;
           updateSubmitState();
         });
     }
@@ -2119,8 +2287,18 @@
 
   // --- Boot ---
 
+  /** Shovel FAB + drawer only on local staging — not Netlify preview/prod. */
+  function isShovelEnabled() {
+    var config = window.__SHOVEL_CONFIG;
+    if (config && config.enabled === true) return true;
+    if (config && config.enabled === false) return false;
+    var host = location.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+  }
+
   async function boot() {
     if (window.__SHOVEL_BOOTED) return;
+    if (!isShovelEnabled()) return;
     if (!document.querySelector("[data-shovel-source]")) {
       console.warn("[Shovel] No stamped elements found.");
       return;
