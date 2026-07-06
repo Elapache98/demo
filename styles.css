@@ -1,4 +1,5 @@
 :root {
+  /* Color */
   --color-page-bg: rgb(250, 249, 245);
   --color-page-bg-scrim: rgb(250, 249, 245, 0.8);
   --color-text-primary: #222222;
@@ -16,6 +17,7 @@
   --color-accent-hover: #222222;
   --color-button-primary-bg: #333333;
   --color-button-primary-text: #ffffff;
+  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 10px;
@@ -24,12 +26,14 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
+  /* Radius */
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-card: 24px;
   --radius-answer: 32px;
   --radius-pill: 50px;
   --radius-logo: 50%;
+  /* Typography */
   --font-family-heading: "Bricolage Grotesque", sans-serif;
   --font-family-body: inter, Arial, sans-serif;
   --font-size-h1: 40px;
@@ -43,11 +47,13 @@
   --font-weight-body: 400;
   --font-weight-medium: 500;
   --line-height-body: 1.65;
+  /* Layout */
   --layout-grid-gap: 24px;
   --layout-card-padding: 24px;
   --layout-max-width: 900px;
   --layout-toolbar-gap: 1.5rem;
   --layout-footer-padding-x: 48px;
+  /* Card shadows (used throughout legacy) */
   --card-border-color: rgba(74, 60, 47, 0.095);
   --card-box-shadow-1-x: 0px;
   --card-box-shadow-1: rgba(31, 38, 135, 0.08);
@@ -128,8 +134,8 @@ body.article-page {
 
 #actionButton {
   width: fit-content;
-  background: var(--color-button-primary-bg);
-  color: white;
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
   border: none;
   padding: 10px 16px;
   border-radius: var(--radius-pill);
@@ -170,37 +176,11 @@ body.article-page {
   border: 1px solid rgba(177, 161, 144, 0.5);
 }
 
-.sec-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  background: var(--color-button-primary-bg);
-    border: 1px solid rgba(13, 11, 70, 0.065);
-  border-radius: var(--radius-sm);
-    padding: 8px 8px;    
-    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-    box-shadow: 0 .5px .5px rgba(31, 38, 135, 0.26);
-    cursor: pointer;
-  
-  width: 48px;
-  height: 48px;
-  color: var(--color-button-primary-text);}
-  
-  .sec-btn:hover,
-  .sec-btn:focus {
-    transform: translateY(-2px) scale(1.04);
-    outline: none;
-    border: 1px solid rgba(177, 161, 144, 0.5);
-  }
-  
-  .sec-btn:active {
-    background: #ffffff;
-    border: 1px solid rgba(177, 161, 144, 0.8);
-    transform: translateY(-1px) scale(1.02);
-  }
-  .sec-btn svg {
-    display: block;
-    color: #737373;
+.sec-btn:active {
+  background: var(--color-surface);
+  border: 1px solid rgba(177, 161, 144, 0.8);
+  transform: translateY(-1px) scale(1.02);
+}
 
 .sec-btn svg {
   display: block;
@@ -208,10 +188,10 @@ body.article-page {
 }
 
 .landing-grid {
-margin-top: calc(100vh * .25);
-  display: block;
+  margin-top: 25vh;
+  display: flex;
   grid-template-columns: 1fr 1fr;
-  gap: var(--layout-toolbar-gap);
+  gap: var(--layout-grid-gap);
   justify-content: start;
   align-items: stretch;
   max-width: var(--layout-max-width);
@@ -241,19 +221,9 @@ margin-top: calc(100vh * .25);
   border-style: solid;
   border-color: var(--color-border-subtle);
   border-width: 1px;
-transition: box-shadow .25s;
-  box-shadow:75px var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
- 
-
-  display: grid;}
-.landing-content h1 {
-  margin-bottom: 0px;
-  margin-top: 0px;
-  height: 75.4453px;
-
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-heading);
-  font-size: var(--font-size-h1);}
+  transition: box-shadow 0.25s;
+  box-shadow: var(--card-box-shadow-1-x) var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
+}
 
 .answer-content {
   min-width: 0;
@@ -552,28 +522,14 @@ h1 {
   line-height: 1.3;
 }
 
- h2 {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #333;
-    line-height: 1;
-  }
-
-
-
- h3 {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-  margin-bottom: 0px;
-  color: var(--color-accent);
-  
-
-  margin-top: 0px;
-  margin-right: 0px;
-  margin-left: 0px;}
+h2 {
+  font-family: var(--font-family-heading);
+  font-size: 32px;
+  font-weight: var(--font-weight-heading);
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
 
 h3 {
   font-family: var(--font-family-heading);
@@ -592,22 +548,13 @@ h4 {
 }
 
 p {
-  font-family: 'inter', Arial, sans-serif;
-  font-size: 18px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  line-height: 1.65;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body);
+  color: #605D5D;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
   letter-spacing: 0.25px;
-  
-
-  padding-top: 0px;
-  padding-right: 0px;
-  padding-bottom: 0px;
-  padding-left: 0px;
-  margin-bottom: 8px;
-  margin-top: 8px;
-  margin-right: 8px;
-  margin-left: 8px;}
+}
 
 p b, p strong {
   font-weight: var(--font-weight-heading);
@@ -935,13 +882,8 @@ img.preloaded {
   display: flex;
   gap: 1.5rem;
   /* Liquid glass: low-opacity tint so the gaussian-blurred backdrop reads through */
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.30) 0%,
-    rgba(255, 255, 255, 0.12) 45%,
-    rgba(255, 255, 255, 0.22) 100%
-  );
-  border-radius: 50px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.22) 100%);
+  border-radius: 28px;
   /* Soft light rim around the edge */
   border: 1px solid rgba(255, 255, 255, 0.45);
   /* Heavy gaussian blur + saturation/brightness lift refracts whatever scrolls behind */
@@ -1245,8 +1187,8 @@ img.preloaded {
 }
 .photo-row {
   display: flex;
-  flex-wrap: nowrap;         /* Prevent wrapping */
-  gap: 8px;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  gap: var(--space-2);
   justify-content: flex-start;
   align-items: center;
   overflow-x: auto; /* Enable horizontal scroll */
