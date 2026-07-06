@@ -50,6 +50,7 @@
   <!-- Force deploy -->
   <link rel="icon" type="image/png" href="Notionme.png">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="shovel.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
@@ -187,29 +188,13 @@
   <script src="particles.js"></script>
   <script src="image-optimizer.js"></script>
   <script>
-    (function () {
-      var host = location.hostname;
-      var isLocal =
-        host === "localhost" || host === "127.0.0.1" || host === "[::1]";
-      if (!isLocal) return;
-
-      var link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "shovel.css";
-      document.head.appendChild(link);
-
-      window.__SHOVEL_CONFIG = {
-        repo: "Elapache98/demo",
-        baseBranch: "main",
-        apiUrl: "/api/shovel/pr",
-      };
-
-      var script = document.createElement("script");
-      script.type = "module";
-      script.src = "shovel.js";
-      document.body.appendChild(script);
-    })();
+    window.__SHOVEL_CONFIG = {
+      repo: "Elapache98/demo",
+      baseBranch: "main",
+      apiUrl: "/api/shovel/pr",
+    };
   </script>
+  <script type="module" src="shovel.js"></script>
   <script>
     (function () {
       var host = location.hostname;
